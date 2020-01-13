@@ -1,0 +1,19 @@
+name: Build image
+on: [push]
+jobs:
+
+  build-image:
+    name: Build image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: Set GITHUB_REF_SLUG
+        run: echo ::set-env name=GITHUB_REF_SLUG::$(echo $GITHUB_REF | cut -d'/' -f3)
+      - name: Build image
+        run: |
+          docker build -t quay.io/acoustid/patroni-exporter:$GITHUB_REF_SLUG .
+      - name: Push image
+        run: |
+          echo ${{ secrets.QUAY_PASSWORD }} | docker login quay.io -u ${{ secrets.QUAY_USERNAME }} --password-stdin
+          docker push quay.io/acoustid/patroni-exporter:$GITHUB_REF_SLUG
